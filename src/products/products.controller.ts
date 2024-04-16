@@ -2,7 +2,8 @@ import { Controller, Get, NotImplementedException } from '@nestjs/common';
 import * as Excel from 'exceljs';
 import { isArray, isNil, isNumber, isString } from 'lodash';
 import { resolve } from 'path';
-import { ProductModel, Unit } from './product.model';
+import { ProductModel, Unit } from '../models/product.model';
+import { UnitUtil } from 'src/utils/unit.util';
 
 @Controller('products')
 export class ProductsController {
@@ -46,25 +47,7 @@ export class ProductsController {
             case 8:
               if (isString(cell.value)) {
                 //Hộp, Túi, Chai, Cái, Lẻ
-                switch (cell.value) {
-                  case 'Hộp':
-                    unit = Unit.box;
-                    break;
-                  case 'Túi':
-                    unit = Unit.bag;
-                    break;
-                  case 'Chai':
-                    unit = Unit.bottle;
-                    break;
-                  case 'Cái':
-                    unit = Unit.package;
-                    break;
-                  case 'Lẻ':
-                    unit = Unit.item;
-                    break;
-                  default:
-                    break;
-                }
+                unit = UnitUtil.convertUnit(cell.value);
               }
               break;
             case 9:
