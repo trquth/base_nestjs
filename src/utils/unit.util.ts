@@ -1,4 +1,4 @@
-import { Unit } from 'src/models/product.model';
+import { Unit } from 'src/enums/unit.enum';
 
 export class UnitUtil {
   static convertUnit(param: string) {

@@ -1,16 +1,11 @@
-//Hộp, Túi, Chai, Cái, Lẻ
-export enum Unit {
-  item = 'item', //Lẻ
-  package = 'package', //Cái
-  bottle = 'bottle', //Chai
-  bag = 'bag', //Túi
-  box = 'box', //Hộp
-}
+import { Unit } from 'src/enums/unit.enum';
+
 export class ProductModel {
   constructor(
     public id: string,
     public name: string,
     public unit: Unit | null,
     public quantity: number | null,
+    public weight: number | null,
   ) {}
 }
