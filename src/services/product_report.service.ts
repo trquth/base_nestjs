@@ -7,9 +7,13 @@ import { Unit } from 'src/enums/unit.enum';
 import { ProductUtil } from 'src/products/product.util';
 import { ProductsService } from './products.service';
 import { ProductNewReportModel } from 'src/models/product_new_report.model';
-
+import { resolve } from 'path';
+import * as moment from 'moment';
 @Injectable()
 export class ProductReportService {
+  path = resolve(__dirname, '../../src/resources/templates');
+  templateFilePath = `${this.path}/DON_HANG_TONG_TEMPLATE.xlsx`;
+
   constructor(
     private readonly excelService: ExcelService,
     private readonly productsService: ProductsService,
@@ -17,7 +21,7 @@ export class ProductReportService {
 
   async getExportedProductsData(path: string) {
     try {
-      const worksheets = await this.excelService.readFile(path);
+      const { worksheets } = await this.excelService.readFile(path);
       const worksheet = worksheets[0];
       const rowStartIndex = 3;
       const numberOfRows = worksheet.rowCount;
@@ -116,10 +120,10 @@ export class ProductReportService {
           let boxNumber = null;
           let itemNumber = null;
           const number = item.buyingQuantity;
-          console.log(
-            `xxxxx id:: ${item.trxNo} ::: buying quantity  ${item.buyingQuantity} 
-            xxxxxxx product quantity ${product.quantity}`,
-          );
+          // console.log(
+          //   `xxxxx id:: ${item.trxNo} ::: buying quantity  ${item.buyingQuantity}
+          //   xxxxxxx product quantity ${product.quantity}`,
+          // );
           if (number) {
             if (item.buyingQuantity >= product.quantity) {
               boxNumber = item.buyingQuantity / product.quantity;
@@ -156,6 +160,46 @@ export class ProductReportService {
         }
       });
       return newReport;
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
+  }
+  // https://stackoverflow.com/questions/55132760/creating-excel-file-and-writing-to-it-with-exceljs
+  async exportReportExcel(data: ProductNewReportModel[]) {
+    try {
+      const { workbook, worksheets } = await this.excelService.readFile(
+        this.templateFilePath,
+      );
+
+      const worksheet = worksheets[0];
+      //Title
+      const firstRow = worksheet.getRow(1);
+      const firstRowValue = firstRow.getCell(1).value;
+      let title = '';
+      if (isString(firstRowValue)) {
+        title = firstRowValue.replace(
+          '{DD/MM/YYYY}',
+          moment(new Date()).format('DD/MM/YYYY'),
+        );
+      }
+      firstRow.getCell(1).value = title;
+      //Rows
+      const rows = data.map((item) => [
+        item.trxNo,
+        item.name,
+        item.boxNumber ?? '-',
+        item.itemNumber ?? '-',
+        item.totalWeight,
+        item.quantity,
+      ]);
+      worksheet.insertRows(3, rows);
+
+      await this.excelService.writeFile(
+        workbook,
+        `DON_HANG_TONG_${Date.now()}`,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 }

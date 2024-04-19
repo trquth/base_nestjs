@@ -15,7 +15,7 @@ export class ProductsService {
 
   async getProducts() {
     try {
-      const worksheets = await this.excelService.readFile(this.filePath);
+      const { worksheets } = await this.excelService.readFile(this.filePath);
       const worksheet = worksheets[0];
       const rowStartIndex = 3;
       const numberOfRows = worksheet.rowCount;
@@ -29,7 +29,7 @@ export class ProductsService {
         let weight: number | null;
 
         row.eachCell({ includeEmpty: false }, function (cell, colNumber) {
-          console.log('Cell ' + colNumber + ' = ' + cell.value);
+          // console.log('Cell ' + colNumber + ' = ' + cell.value);
           switch (colNumber) {
             case 1:
               if (isString(cell.value)) {

@@ -17,11 +17,12 @@ export class ProductReportController {
   @Get()
   async getProducts() {
     try {
-      return await this.productReportService.makeNewProductsReport(
+      const data = await this.productReportService.makeNewProductsReport(
         this.filePath,
       );
+      await this.productReportService.exportReportExcel(data);
     } catch (error) {
-      throw new BadRequestException('Something went wrong during read file', {
+      throw new BadRequestException('Something went wrong during export file', {
         cause: error,
       });
     }
