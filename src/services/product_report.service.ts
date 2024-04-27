@@ -19,9 +19,9 @@ export class ProductReportService {
     private readonly productsService: ProductsService,
   ) {}
 
-  async getExportedProductsData(path: string) {
+  async getExportedProductsData(data: Buffer) {
     try {
-      const { worksheets } = await this.excelService.readFile(path);
+      const { worksheets } = await this.excelService.readFile(data);
       const worksheet = worksheets[0];
       const rowStartIndex = 3;
       const numberOfRows = worksheet.rowCount;
@@ -107,10 +107,10 @@ export class ProductReportService {
     }
   }
 
-  async makeNewProductsReport(path: string) {
+  async makeNewProductsReport(data: Buffer) {
     try {
       const products = await this.productsService.getProducts();
-      const reportedProducts = await this.getExportedProductsData(path);
+      const reportedProducts = await this.getExportedProductsData(data);
 
       const newReport: ProductNewReportModel[] = [];
 
@@ -193,8 +193,7 @@ export class ProductReportService {
         item.quantity,
       ]);
       worksheet.insertRows(3, rows);
-
-      await this.excelService.writeFile(
+      return await this.excelService.writeFile(
         workbook,
         `DON_HANG_TONG_${Date.now()}`,
       );
