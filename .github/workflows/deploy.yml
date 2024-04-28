@@ -39,4 +39,4 @@ jobs:
         with:
           project: "trquth-base-nestjs-40"
           entrypoint: "main.ts"
-          root: ".dist"
+          root: "dist"
