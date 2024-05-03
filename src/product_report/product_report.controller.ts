@@ -10,14 +10,20 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { isNil } from 'lodash';
 import { resolve } from 'path';
+import { GoogleDriveService } from 'src/core/services';
 import { HttpExceptionFilter } from 'src/exceptions/http_exception.filter';
 import { ProductReportService } from 'src/services/product_report.service';
 
 @Controller('product-report')
 @UseFilters(new HttpExceptionFilter())
 export class ProductReportController {
-  constructor(private readonly productReportService: ProductReportService) {}
   filePath = resolve(__dirname, '../../src/resources/excels/HANG.xlsx');
+  GOOGLE_DRIVE_FOLDER_ID = '1OLrfHn7sHcOHezxfm3S6Kldtr3sRY1Ea';
+
+  constructor(
+    private readonly productReportService: ProductReportService,
+    private readonly ggDriveService: GoogleDriveService,
+  ) {}
 
   // https://stackoverflow.com/questions/75834365/upload-excel-file-using-nestjs-and-typescript
   @Post('upload')

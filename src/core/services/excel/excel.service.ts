@@ -13,8 +13,8 @@ export class ExcelService {
       if (isEmpty(data)) {
         throw new Error('Empty data');
       }
-      const workbook = new Excel.Workbook();
-      let content = null;
+      const workbook: Excel.Workbook = new Excel.Workbook();
+      let content: Excel.Workbook | null = null;
       if (isString(data)) {
         content = await workbook.xlsx.readFile(data);
       } else {
@@ -25,7 +25,7 @@ export class ExcelService {
         throw new Error('Cannot read file.');
       }
 
-      const worksheets = content.worksheets;
+      const worksheets: Excel.Worksheet[] = content.worksheets;
       return { workbook, worksheets };
     } catch (error) {
       throw error;
@@ -58,6 +58,21 @@ export class ExcelService {
       //     callback?.(file);
       //   },
       // );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async writeExcelBuffer(workBook: Excel.Workbook) {
+    try {
+      // const data = await tmp.fileSync({
+      //   tmpdir: `${this.resourceRootPath}/report/`,
+      //   prefix: `${fileName}-`,
+      //   postfix: '.xlsx',
+      // });
+      // const file = data.name;
+      const excelBuffer = await workBook.xlsx.writeBuffer();
+      return excelBuffer as Buffer;
     } catch (error) {
       throw error;
     }

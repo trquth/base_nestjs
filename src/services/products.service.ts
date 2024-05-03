@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { ExcelService } from './excel.service';
 import { ProductModel } from 'src/models/product.model';
 import { Unit } from 'src/enums/unit.enum';
 import { isNil, isNumber, isObject, isString } from 'lodash';
 import { UnitUtil } from 'src/utils/unit.util';
 import { resolve } from 'path';
 import { NumberUtil } from 'src/utils/number.util';
+import { ExcelService } from 'src/core/services/excel/excel.service';
 
 @Injectable()
 export class ProductsService {

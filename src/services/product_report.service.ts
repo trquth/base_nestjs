@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProductReportModel } from 'src/models/product_report.model';
-import { ExcelService } from './excel.service';
+import { ExcelService } from '../core/services/excel/excel.service';
 import { NumberUtil } from 'src/utils/number.util';
 import { isNumber, isString } from 'lodash';
 import { Unit } from 'src/enums/unit.enum';
@@ -9,14 +9,18 @@ import { ProductsService } from './products.service';
 import { ProductNewReportModel } from 'src/models/product_new_report.model';
 import { resolve } from 'path';
 import * as moment from 'moment';
+import { FileType } from 'src/core/type';
+import { GoogleDriveService } from 'src/core/services';
 @Injectable()
 export class ProductReportService {
   path = resolve(__dirname, '../../src/resources/templates');
   templateFilePath = `${this.path}/DON_HANG_TONG_TEMPLATE.xlsx`;
+  GOOGLE_DRIVE_FOLDER_ID = '1OLrfHn7sHcOHezxfm3S6Kldtr3sRY1Ea';
 
   constructor(
     private readonly excelService: ExcelService,
     private readonly productsService: ProductsService,
+    private readonly ggDriveService: GoogleDriveService,
   ) {}
 
   async getExportedProductsData(data: Buffer) {
@@ -183,6 +187,7 @@ export class ProductReportService {
         );
       }
       firstRow.getCell(1).value = title;
+
       //Rows
       const rows = data.map((item) => [
         item.trxNo,
@@ -193,10 +198,42 @@ export class ProductReportService {
         item.quantity,
       ]);
       worksheet.insertRows(3, rows);
-      return await this.excelService.writeFile(
-        workbook,
-        `DON_HANG_TONG_${Date.now()}`,
+
+      //Style
+      worksheet.properties.defaultRowHeight = 100;
+      worksheet.columns.forEach((column) => {
+        column.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
+
+      const buffer = await this.excelService.writeExcelBuffer(workbook);
+      console.log('xxxxxxxxxx DATA xxxxxxxxx', JSON.stringify(buffer));
+      const file: Express.Multer.File = {
+        filename: `DON_HANG_TONG_${Date.now()}`,
+        originalname: '',
+        fieldname: '',
+        mimetype:
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        buffer: buffer,
+        path: '',
+        size: 0,
+        stream: null,
+        destination: '',
+        encoding: '',
+      };
+      const url = await this.ggDriveService.uploadFile(
+        file,
+        this.GOOGLE_DRIVE_FOLDER_ID,
       );
+      // return await this.excelService.writeFile(
+      //   workbook,
+      //   `DON_HANG_TONG_${Date.now()}`,
+      // );
+      return url;
     } catch (error) {
       throw error;
     }
