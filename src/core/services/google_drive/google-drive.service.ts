@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import { GOOGLE_DRIVE_CONFIG } from './google-drive.constant';
-import { GoogleDriveConfigType } from './types';
+import { GGFileType, GoogleDriveConfigType } from './types';
 import { Readable } from 'stream';
 
 @Injectable()
@@ -11,15 +11,15 @@ export class GoogleDriveService {
     private readonly googleDriveConfig: GoogleDriveConfigType,
   ) {}
 
-  async uploadFile(file: Express.Multer.File, folderId?: string) {
+  async uploadFile(file: GGFileType, folderId?: string) {
     try {
       const fileMetadata = {
-        name: file.filename,
+        name: file.fileName,
         parents: [folderId],
       };
 
       const media = {
-        mimeType: file.mimetype,
+        mimeType: file.mimeType,
         body: this.bufferToStream(file.buffer),
       };
 

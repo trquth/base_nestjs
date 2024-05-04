@@ -9,13 +9,13 @@ import { ProductsService } from './products.service';
 import { ProductNewReportModel } from 'src/models/product_new_report.model';
 import { resolve } from 'path';
 import * as moment from 'moment';
-import { FileType } from 'src/core/type';
 import { GoogleDriveService } from 'src/core/services';
+import { GGFileType } from 'src/core/services/google_drive/types';
 @Injectable()
 export class ProductReportService {
-  path = resolve(__dirname, '../../src/resources/templates');
-  templateFilePath = `${this.path}/DON_HANG_TONG_TEMPLATE.xlsx`;
-  GOOGLE_DRIVE_FOLDER_ID = '1OLrfHn7sHcOHezxfm3S6Kldtr3sRY1Ea';
+  private path = resolve(__dirname, '../../src/resources/templates');
+  private templateFilePath = `${this.path}/DON_HANG_TONG_TEMPLATE.xlsx`;
+  private GOOGLE_DRIVE_FOLDER_ID = '1OLrfHn7sHcOHezxfm3S6Kldtr3sRY1Ea';
 
   constructor(
     private readonly excelService: ExcelService,
@@ -171,7 +171,7 @@ export class ProductReportService {
   // https://stackoverflow.com/questions/55132760/creating-excel-file-and-writing-to-it-with-exceljs
   async exportReportExcel(data: ProductNewReportModel[]) {
     try {
-      const { workbook, worksheets } = await this.excelService.readFile(
+      const { worksheets } = await this.excelService.readFile(
         this.templateFilePath,
       );
 
@@ -197,43 +197,37 @@ export class ProductReportService {
         item.totalWeight,
         item.quantity,
       ]);
-      worksheet.insertRows(3, rows);
+      worksheet.insertRows(3, rows, 'o');
 
       //Style
-      worksheet.properties.defaultRowHeight = 100;
-      worksheet.columns.forEach((column) => {
-        column.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
+      //this.excelService.makeBorderRow(worksheet, [1, 3], [6, 100]);
+      // worksheet.properties.defaultRowHeight = 100;
+      // worksheet.columns.forEach((column) => {
+      //   column.border = {
+      //     top: { style: 'thin' },
+      //     left: { style: 'thin' },
+      //     bottom: { style: 'thin' },
+      //     right: { style: 'thin' },
+      //   };
+      // });
+      const enableSaveFileToLocal = false;
+      const fileName = `DON_HANG_TONG_${Date.now()}`;
+      if (enableSaveFileToLocal) {
+        return await this.excelService.writeFile(fileName);
+      } else {
+        const buffer = await this.excelService.writeExcelBuffer();
+        const file: GGFileType = {
+          fileName: fileName,
+          mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          buffer: buffer,
         };
-      });
-
-      const buffer = await this.excelService.writeExcelBuffer(workbook);
-      console.log('xxxxxxxxxx DATA xxxxxxxxx', JSON.stringify(buffer));
-      const file: Express.Multer.File = {
-        filename: `DON_HANG_TONG_${Date.now()}`,
-        originalname: '',
-        fieldname: '',
-        mimetype:
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        buffer: buffer,
-        path: '',
-        size: 0,
-        stream: null,
-        destination: '',
-        encoding: '',
-      };
-      const url = await this.ggDriveService.uploadFile(
-        file,
-        this.GOOGLE_DRIVE_FOLDER_ID,
-      );
-      // return await this.excelService.writeFile(
-      //   workbook,
-      //   `DON_HANG_TONG_${Date.now()}`,
-      // );
-      return url;
+        const url = await this.ggDriveService.uploadFile(
+          file,
+          this.GOOGLE_DRIVE_FOLDER_ID,
+        );
+        return url;
+      }
     } catch (error) {
       throw error;
     }

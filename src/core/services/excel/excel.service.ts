@@ -6,19 +6,22 @@ import { resolve } from 'path';
 
 @Injectable()
 export class ExcelService {
-  resourceRootPath = resolve(__dirname, '../../src/resources');
+  resourceRootPath = resolve(__dirname, '../../../../src/resources');
+  private workbook: Excel.Workbook;
+  constructor() {
+    this.workbook = new Excel.Workbook();
+  }
   // https://blog.tericcabrel.com/read-excel-file-nodejs-typescript/
   async readFile(data: string | Buffer) {
     try {
       if (isEmpty(data)) {
         throw new Error('Empty data');
       }
-      const workbook: Excel.Workbook = new Excel.Workbook();
       let content: Excel.Workbook | null = null;
       if (isString(data)) {
-        content = await workbook.xlsx.readFile(data);
+        content = await this.workbook.xlsx.readFile(data);
       } else {
-        content = await workbook.xlsx.load(data);
+        content = await this.workbook.xlsx.load(data);
       }
 
       if (isNil(content)) {
@@ -26,44 +29,32 @@ export class ExcelService {
       }
 
       const worksheets: Excel.Worksheet[] = content.worksheets;
-      return { workbook, worksheets };
+      return { workbook: this.workbook, worksheets };
     } catch (error) {
       throw error;
     }
   }
   // https://wajihaabid.medium.com/downloading-data-in-excel-format-with-nest-js-4a0a859bf430
-  async writeFile(workBook: Excel.Workbook, fileName: string) {
+  async writeFile(fileName: string) {
     try {
       const data = await tmp.fileSync({
         tmpdir: `${this.resourceRootPath}/report/`,
-        prefix: `${fileName}-`,
-        postfix: '.xlsx',
+        template: `${fileName}_XXXXXX.xlsx`,
+        // prefix: `${fileName}_`,
+        // postfix: '.xlsx',
       });
       const file = data.name;
       if (file) {
-        await workBook.xlsx.writeFile(file);
+        await this.workbook.xlsx.writeFile(file);
         return file;
       }
       return null;
-      // tmp.file(
-      //   {
-      //     tmpdir: `${this.resourceRootPath}/report/`,
-      //     prefix: `${fileName}-`,
-      //     postfix: '.xlsx',
-      //   },
-      //   async (err, file) => {
-      //     if (err) throw err;
-      //     // console.log('PATH:::', file);
-      //     await workBook.xlsx.writeFile(file);
-      //     callback?.(file);
-      //   },
-      // );
     } catch (error) {
       throw error;
     }
   }
 
-  async writeExcelBuffer(workBook: Excel.Workbook) {
+  async writeExcelBuffer() {
     try {
       // const data = await tmp.fileSync({
       //   tmpdir: `${this.resourceRootPath}/report/`,
@@ -71,10 +62,55 @@ export class ExcelService {
       //   postfix: '.xlsx',
       // });
       // const file = data.name;
-      const excelBuffer = await workBook.xlsx.writeBuffer();
-      return excelBuffer as Buffer;
+      const buffer = await this.workbook.xlsx.writeBuffer();
+      return buffer as Buffer;
     } catch (error) {
       throw error;
     }
   }
+  // https://github.com/exceljs/exceljs/issues/333
+  // makeBorderRow(
+  //   worksheet: Excel.Worksheet,
+  //   [startCol, startRow]: [number, number],
+  //   [endCol, endRow]: [number, number],
+  //   style: Excel.BorderStyle = 'thin',
+  // ) {
+  //   for (let i = startRow; i <= endRow; i++) {
+  //     const leftBorderCell = worksheet.getCell(i, startCol);
+  //     const rightBorderCell = worksheet.getCell(i, endCol);
+
+  //     leftBorderCell.border = {
+  //       ...leftBorderCell.border,
+  //       left: {
+  //         style,
+  //       },
+  //     };
+
+  //     rightBorderCell.border = {
+  //       ...rightBorderCell.border,
+  //       right: {
+  //         style,
+  //       },
+  //     };
+  //   }
+
+  //   for (let i = startCol; i <= endCol; i++) {
+  //     const topBorderCell = worksheet.getCell(startRow, i);
+  //     const bottomBorderCell = worksheet.getCell(endRow, i);
+
+  //     topBorderCell.border = {
+  //       ...topBorderCell.border,
+  //       top: {
+  //         style,
+  //       },
+  //     };
+
+  //     bottomBorderCell.border = {
+  //       ...bottomBorderCell.border,
+  //       bottom: {
+  //         style,
+  //       },
+  //     };
+  //   }
+  // }
 }

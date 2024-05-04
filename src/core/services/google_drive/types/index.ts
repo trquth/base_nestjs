@@ -1,6 +1,2 @@
-export type GoogleDriveConfigType = {
-  clientId: string;
-  clientSecret: string;
-  redirectUrl: string;
-  refreshToken: string;
-};
+export * from './google_drive_config.type';
+export * from './google_drive_file.type';
