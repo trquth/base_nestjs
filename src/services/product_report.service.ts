@@ -210,7 +210,7 @@ export class ProductReportService {
       //     right: { style: 'thin' },
       //   };
       // });
-      const enableSaveFileToLocal = false;
+      const enableSaveFileToLocal = true;
       const fileName = `DON_HANG_TONG_${Date.now()}`;
       if (enableSaveFileToLocal) {
         return await this.excelService.writeFile(fileName);
